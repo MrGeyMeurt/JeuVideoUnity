@@ -41,7 +41,7 @@ public class PlayerScript : MonoBehaviour
     }
 
     void FixedUpdate(){
-        // Joeur qui se déplace en avant et en arrière en fonction de l'axe vertical
+        // Joueur qui se déplace en avant et en arrière en fonction de l'axe vertical
         transform.Translate(Vector3.forward * 5f * Time.fixedDeltaTime * Input.GetAxis("Vertical"));
         // Joueur qui se déplace à gauche et à droite en fonction de l'axe horizontal
         transform.Translate(Vector3.right * 5f * Time.fixedDeltaTime * Input.GetAxis("Horizontal"));
