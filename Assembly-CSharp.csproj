@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Assets\Easy Primitive Animals\FarmEdition\Scripts\AnimalController.cs" />
     <Compile Include="Assets\Easy Primitive Animals\FarmEdition\Scripts\RotateStand.cs" />
+    <Compile Include="Assets\GrapplingDetector.cs" />
     <Compile Include="Assets\Starter Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Grappling.cs" />
     <Compile Include="Assets\Grappin.cs" />
