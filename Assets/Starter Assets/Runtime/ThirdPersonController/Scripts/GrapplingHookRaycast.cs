@@ -1,181 +1,259 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GrapplingHookRaycast : MonoBehaviour
 {
     [Header("Références")]
-    public Transform hook; // objet visuel du hook (ex: une sphère)
-    public Transform hookHolder; // point de départ du grappin (ex: la main)
-    public Camera playerCamera; // caméra du joueur
-    public LayerMask grappleLayer; // couches détectables (Hookable)
+    public Transform hook;
+    public Transform hookHolder;
+    public Camera playerCamera;
+    public LayerMask grappleLayer;
 
     [Header("Paramètres")]
-    public float hookSpeed = 30f; // vitesse du hook visuel
-    public float playerPullSpeed = 10f; // vitesse du joueur tiré
+    public float hookSpeed = 30f;
     public float maxDistance = 25f;
-    public float hookDetectionRadius = 0.5f; // Rayon de détection pour le spherecast
+    public float teleportHeight = 1.0f;
 
-    [Header("Visualisation")]
-    public bool showDebugRay = true;
+    [Header("Visuel")]
+    public GameObject aimPointPrefab;
+    public LineRenderer aimLine;
+    public Color validColor = Color.green;
+    public Color invalidColor = Color.red;
 
-    private bool hookFired = false;
-    private bool hookHit = false;
-    private Vector3 grapplePoint;
-    private Vector3 hookTargetDirection;
-    private Rigidbody rb;
+    // Variables privées
+    private bool hookFired, hookHit, isTeleporting;
+    private Vector3 grapplePoint, teleportPoint, hookDirection;
+    private CharacterController charController;
+    private Animator characterAnimator;
+    private MonoBehaviour playerController;
+    private GameObject aimPoint;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        ResetHook();
+        // Initialisation des composants
+        playerCamera = playerCamera ? playerCamera : Camera.main;
+        charController = GetComponent<CharacterController>();
+        characterAnimator = GetComponentInChildren<Animator>();
 
-        if (playerCamera == null)
+        // Trouver le controller du joueur
+        foreach (MonoBehaviour script in GetComponents<MonoBehaviour>())
+            if (script != this && script.GetType().Name.Contains("Controller"))
+            {
+                playerController = script;
+                break;
+            }
+
+        // Configurer les éléments visuels
+        SetupVisuals();
+    }
+
+    void SetupVisuals()
+    {
+        // Créer le point de visée
+        if (aimPointPrefab)
+            aimPoint = Instantiate(aimPointPrefab, Vector3.zero, Quaternion.identity);
+        else
         {
-            playerCamera = Camera.main;
-            Debug.Log("Caméra auto-assignée à Camera.main");
+            aimPoint = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            aimPoint.transform.localScale = Vector3.one * 0.2f;
+            Destroy(aimPoint.GetComponent<Collider>());
+
+            var renderer = aimPoint.GetComponent<Renderer>();
+            if (renderer)
+            {
+                renderer.material = new Material(Shader.Find("Standard"));
+                renderer.material.color = validColor;
+            }
         }
+        aimPoint.SetActive(false);
+
+        // Configurer la ligne de visée
+        if (!aimLine)
+        {
+            aimLine = gameObject.AddComponent<LineRenderer>();
+            aimLine.startWidth = aimLine.endWidth = 0.05f;
+            aimLine.material = new Material(Shader.Find("Sprites/Default"));
+        }
+        aimLine.enabled = false;
     }
 
     void Update()
     {
-        // Tirer le grappin
-        if (Input.GetMouseButtonDown(0) && !hookFired)
-        {
-            TryFireHook();
-        }
+        if (isTeleporting) return;
 
-        // Gestion du hook en mouvement
-        if (hookFired && !hookHit)
-        {
-            MoveHookForward();
-            CheckHookCollision();
-        }
+        // Visée et affichage
+        if (Input.GetMouseButton(0) && !hookFired)
+            ShowAimVisuals();
+        else if (!hookFired && (aimPoint?.activeSelf == true || aimLine?.enabled == true))
+            HideAimVisuals();
 
-        // Tirer le joueur vers le point d'accroche
-        if (hookHit)
+        // Actions principales
+        if (Input.GetMouseButtonUp(0) && !hookFired)
+            FireHook();
+        else if (hookFired && !hookHit)
         {
-            PullPlayerToHook();
+            MoveHook();
+            CheckCollision();
         }
+        else if (hookHit)
+            StartCoroutine(TeleportPlayer());
 
-        // Récupérer le grappin
+        // Annuler avec clic droit
         if (Input.GetMouseButtonDown(1) && (hookFired || hookHit))
-        {
             ResetHook();
+    }
+
+    void ShowAimVisuals()
+    {
+        // Obtenir le point visé
+        Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+        bool validTarget = Physics.Raycast(ray, out RaycastHit hit, maxDistance, grappleLayer);
+        Vector3 targetPoint = validTarget ? hit.point : ray.origin + ray.direction * maxDistance;
+
+        // Afficher le point
+        if (aimPoint)
+        {
+            aimPoint.SetActive(true);
+            aimPoint.transform.position = targetPoint;
+
+            var renderer = aimPoint.GetComponent<Renderer>();
+            if (renderer)
+                renderer.material.color = validTarget ? validColor : invalidColor;
+        }
+
+        // Afficher la ligne
+        if (aimLine)
+        {
+            aimLine.enabled = true;
+            aimLine.positionCount = 2;
+            aimLine.SetPosition(0, hookHolder.position);
+            aimLine.SetPosition(1, targetPoint);
+            aimLine.startColor = aimLine.endColor = validTarget ? validColor : invalidColor;
         }
     }
 
-    void TryFireHook()
+    void HideAimVisuals()
     {
-        // Création d'un rayon depuis la caméra vers le point de clic
-        Ray cameraRay = playerCamera.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
+        if (aimPoint) aimPoint.SetActive(false);
+        if (aimLine) aimLine.enabled = false;
+    }
 
-        // Vérifier si le rayon touche un objet accrochable
-        if (Physics.Raycast(cameraRay, out hit, maxDistance, grappleLayer))
+    void FireHook()
+    {
+        Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, grappleLayer))
         {
-            // Si on touche un objet accrochable, enregistrer le point et lancer le hook
+            // Cacher visuels
+            HideAimVisuals();
+
+            // Configurer le hook
             grapplePoint = hit.point;
-            hookTargetDirection = (grapplePoint - hookHolder.position).normalized;
-
-            if (showDebugRay)
-            {
-                Debug.DrawLine(hookHolder.position, grapplePoint, Color.green, 1f);
-            }
-
-            // Lancer directement le hook vers ce point sans attendre
+            hookDirection = (grapplePoint - hookHolder.position).normalized;
             hookFired = true;
+
+            // Lancer le hook
             hook.SetParent(null);
-            hook.forward = hookTargetDirection;
-        }
-        else
-        {
-            // Si on ne touche rien d'accrochable, on peut quand même tirer dans cette direction
-            // mais sans définir de point d'accroche (optionnel)
-            Vector3 farPoint = cameraRay.GetPoint(maxDistance);
-            hookTargetDirection = (farPoint - hookHolder.position).normalized;
-
-            if (showDebugRay)
-            {
-                Debug.DrawRay(hookHolder.position, hookTargetDirection * maxDistance, Color.red, 1f);
-            }
-
-            // Pour un grappin plus précis, on peut choisir de ne pas tirer s'il n'y a pas de cible
-            // hookFired = true;
-            // hook.SetParent(null);
-            // hook.forward = hookTargetDirection;
+            hook.forward = hookDirection;
         }
     }
 
-    void MoveHookForward()
+    void MoveHook()
     {
+        // Si proche de la cible
         if (grapplePoint != Vector3.zero && Vector3.Distance(hook.position, grapplePoint) < 0.5f)
         {
-            // Si on a un point défini et qu'on s'en approche, s'y accrocher directement
             hook.position = grapplePoint;
             hookHit = true;
+            CalculateTeleportPoint();
         }
         else
         {
-            // Sinon, continuer à avancer
-            hook.Translate(hookTargetDirection * hookSpeed * Time.deltaTime, Space.World);
+            // Déplacer le hook
+            hook.position += hookDirection * hookSpeed * Time.deltaTime;
 
-            // Si on dépasse la distance maximale, reset
+            // Vérifier la distance max
             if (Vector3.Distance(hookHolder.position, hook.position) >= maxDistance)
-            {
                 ResetHook();
-            }
         }
     }
 
-    void CheckHookCollision()
+    void CheckCollision()
     {
-        // Utiliser un spherecast pour une meilleure détection
-        if (Physics.SphereCast(hook.position - hookTargetDirection * 0.2f, hookDetectionRadius,
-                              hookTargetDirection, out RaycastHit hit, 0.5f, grappleLayer))
+        // Vérifier collision en cours de route
+        if (Physics.SphereCast(hook.position - hookDirection * 0.2f, 0.4f,
+                              hookDirection, out RaycastHit hit, 0.5f, grappleLayer))
         {
             grapplePoint = hit.point;
             hook.position = grapplePoint;
             hookHit = true;
-
-            if (showDebugRay)
-            {
-                Debug.DrawLine(hookHolder.position, grapplePoint, Color.green, 1f);
-            }
+            CalculateTeleportPoint();
         }
     }
 
-    void PullPlayerToHook()
+    void CalculateTeleportPoint()
     {
-        Vector3 direction = (grapplePoint - transform.position).normalized;
-        rb.velocity = direction * playerPullSpeed;
+        // Point de base
+        teleportPoint = grapplePoint + Vector3.up * teleportHeight;
 
-        // Arrêter quand on est assez proche
-        if (Vector3.Distance(transform.position, grapplePoint) < 1.5f)
+        // Ajustement pour plateforme
+        if (Physics.Raycast(grapplePoint + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1f, grappleLayer)
+            && hit.normal.y > 0.7f)
         {
-            rb.velocity = Vector3.zero;
-            ResetHook();
+            // Légèrement vers l'intérieur
+            Vector3 inward = -hit.normal;
+            inward.y = 0;
+
+            if (inward.magnitude > 0.01f)
+                teleportPoint += inward.normalized * 0.5f;
         }
+    }
+
+    IEnumerator TeleportPlayer()
+    {
+        isTeleporting = true;
+
+        // Désactiver contrôles
+        if (playerController) playerController.enabled = false;
+        if (characterAnimator) characterAnimator.speed = 0;
+
+        yield return new WaitForSeconds(0.1f);
+
+        // Téléporter
+        bool controllerWasEnabled = false;
+        if (charController && charController.enabled)
+        {
+            controllerWasEnabled = true;
+            charController.enabled = false;
+        }
+
+        transform.position = teleportPoint;
+
+        if (controllerWasEnabled && charController)
+            charController.enabled = true;
+
+        ResetHook();
+
+        yield return new WaitForSeconds(0.1f);
+
+        // Réactiver contrôles
+        if (playerController) playerController.enabled = true;
+        if (characterAnimator) characterAnimator.speed = 1;
+
+        isTeleporting = false;
     }
 
     void ResetHook()
     {
-        hookFired = false;
-        hookHit = false;
-        grapplePoint = Vector3.zero;
+        hookFired = hookHit = false;
 
         hook.SetParent(hookHolder);
         hook.localPosition = Vector3.zero;
         hook.localRotation = Quaternion.identity;
     }
 
-    void OnDrawGizmosSelected()
+    void OnDestroy()
     {
-        if (hookHit && grapplePoint != Vector3.zero)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(grapplePoint, 0.3f);
-            Gizmos.DrawLine(hookHolder.position, grapplePoint);
-        }
+        if (aimPoint) Destroy(aimPoint);
     }
 }
