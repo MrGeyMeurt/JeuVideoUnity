@@ -18,13 +18,13 @@ public class GrapplingRaycast : MonoBehaviour
     public bool useCharacterDirection = false;
     public float characterRayHeight = 1.5f;
 
-    // Événements pour communiquer avec d'autres composants
+    // evenements pour communiquer avec d'autres composants
     public event Action OnGrapplingStart;
     public event Action<Vector3> OnGrapplingHit;
     public event Action<Vector3> OnTeleportStart;
     public event Action OnTeleportComplete;
 
-    // Variables d'état
+    // Variables d'etat
     private bool hookFired;
     private bool hookHit;
     private bool isTeleporting;
@@ -36,7 +36,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     void Start()
     {
-        // Initialiser la caméra si non spécifiée
+        // Initialiser la camera si non specifiee
         playerCamera = playerCamera ? playerCamera : Camera.main;
     }
 
@@ -92,7 +92,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     void FireHookFromCharacter()
     {
-        // Créer un rayon partant du personnage
+        // Creer un rayon partant du personnage
         Vector3 rayOrigin = transform.position + Vector3.up * characterRayHeight;
         Vector3 rayDirection = transform.forward;
 
@@ -130,10 +130,10 @@ public class GrapplingRaycast : MonoBehaviour
         }
         else
         {
-            // Déplacer le hook
+            // Deplacer le hook
             hook.position += hookDirection * hookSpeed * Time.deltaTime;
 
-            // Vérifier la distance max
+            // Verifier la distance max
             if (Vector3.Distance(hookHolder.position, hook.position) >= maxDistance)
                 ResetHook();
         }
@@ -163,7 +163,7 @@ public class GrapplingRaycast : MonoBehaviour
         if (Physics.Raycast(grapplePoint + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1f, grappleLayer)
             && hit.normal.y > 0.7f)
         {
-            // Légèrement vers l'intérieur
+            // Legerement vers l'interieur
             Vector3 inward = -hit.normal;
             inward.y = 0;
 
@@ -171,7 +171,7 @@ public class GrapplingRaycast : MonoBehaviour
                 teleportPoint += inward.normalized * 0.5f;
         }
 
-        // Notifier du point de téléportation
+        // Notifier du point de teleportation
         OnTeleportStart?.Invoke(teleportPoint);
     }
 
@@ -181,7 +181,7 @@ public class GrapplingRaycast : MonoBehaviour
         {
             isTeleporting = true;
 
-            // Notifier de l'intention de téléportation
+            // Notifier de l'intention de teleportation
             OnTeleportStart?.Invoke(teleportPoint);
         }
     }
@@ -190,10 +190,10 @@ public class GrapplingRaycast : MonoBehaviour
     {
         if (isTeleporting)
         {
-            // Téléporter
+            // Teleporter
             transform.position = teleportPoint;
 
-            // Réinitialiser
+            // Reinitialiser
             ResetHook();
         }
     }
@@ -237,7 +237,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private Vector3 GetCharacterTargetPoint(out bool isValid)
     {
-        // Créer un rayon partant du personnage
+        // Creer un rayon partant du personnage
         Vector3 rayOrigin = transform.position + Vector3.up * characterRayHeight;
         Vector3 rayDirection = transform.forward;
 
