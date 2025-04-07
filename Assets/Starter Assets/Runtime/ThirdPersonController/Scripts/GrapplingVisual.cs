@@ -15,22 +15,22 @@ public class GrapplingVisual : MonoBehaviour
 
     void Start()
     {
-        // Récupérer la référence au core
+        // Recuperer la reference au core
         grapplingRaycast = GetComponent<GrapplingRaycast>();
 
-        // S'abonner aux événements
+        // S'abonner aux evenements
         if (grapplingRaycast != null)
         {
             grapplingRaycast.OnGrapplingStart += HideAimVisuals;
         }
 
-        // Configurer les éléments visuels
+        // Configurer les elements visuels
         SetupVisuals();
     }
 
     void OnDestroy()
     {
-        // Se désabonner des événements
+        // Se desabonner des evenements
         if (grapplingRaycast != null)
         {
             grapplingRaycast.OnGrapplingStart -= HideAimVisuals;
@@ -43,7 +43,7 @@ public class GrapplingVisual : MonoBehaviour
 
     void SetupVisuals()
     {
-        // Créer le point de visée
+        // Creer le point de visee
         if (aimPointPrefab)
             aimPoint = Instantiate(aimPointPrefab, Vector3.zero, Quaternion.identity);
         else
@@ -61,7 +61,7 @@ public class GrapplingVisual : MonoBehaviour
         }
         aimPoint.SetActive(false);
 
-        // Configurer la ligne de visée
+        // Configurer la ligne de visee
         if (!aimLine)
         {
             aimLine = gameObject.AddComponent<LineRenderer>();
@@ -73,11 +73,11 @@ public class GrapplingVisual : MonoBehaviour
 
     void Update()
     {
-        // Ne pas afficher la visée si le grappin est actif
+        // Ne pas afficher la visee si le grappin est actif
         if (grapplingRaycast.IsGrappling())
             return;
 
-        // Afficher/cacher les visuels de visée
+        // Afficher/cacher les visuels de visee
         if (Input.GetMouseButton(0))
             ShowAimVisuals();
         else
@@ -86,7 +86,7 @@ public class GrapplingVisual : MonoBehaviour
 
     void ShowAimVisuals()
     {
-        // Obtenir le point visé depuis le core
+        // Obtenir le point vise depuis le core
         Vector3 targetPoint = grapplingRaycast.GetTargetPoint(out bool validTarget);
 
         // Afficher le point

@@ -8,7 +8,7 @@ public class Teleportation : MonoBehaviour
     public float preTeleportDelay = 0.1f;
     public float postTeleportDelay = 0.1f;
 
-    // Références aux composants
+    // References aux composants
     private GrapplingRaycast grapplingRaycast;
     private CharacterController charController;
     private Animator characterAnimator;
@@ -16,7 +16,7 @@ public class Teleportation : MonoBehaviour
 
     void Start()
     {
-        // Récupérer les références
+        // Recuperer les references
         grapplingRaycast = GetComponent<GrapplingRaycast>();
         charController = GetComponent<CharacterController>();
         characterAnimator = GetComponentInChildren<Animator>();
@@ -31,7 +31,7 @@ public class Teleportation : MonoBehaviour
             }
         }
 
-        // S'abonner aux événements
+        // S'abonner aux evenements
         if (grapplingRaycast != null)
         {
             grapplingRaycast.OnGrapplingHit += HandleGrapplingHit;
@@ -40,7 +40,7 @@ public class Teleportation : MonoBehaviour
 
     void OnDestroy()
     {
-        // Se désabonner des événements
+        // Se desabonner des evenements
         if (grapplingRaycast != null)
         {
             grapplingRaycast.OnGrapplingHit -= HandleGrapplingHit;
@@ -54,16 +54,16 @@ public class Teleportation : MonoBehaviour
 
     IEnumerator TeleportSequence()
     {
-        // Débuter la téléportation
+        // Debuter la teleportation
         grapplingRaycast.StartTeleportation();
 
-        // Désactiver les contrôles
+        // Desactiver les contreles
         DisableControls();
 
-        // Attendre avant la téléportation
+        // Attendre avant la teleportation
         yield return new WaitForSeconds(preTeleportDelay);
 
-        // Désactiver temporairement le CharacterController
+        // Desactiver temporairement le CharacterController
         bool controllerWasEnabled = false;
         if (charController && charController.enabled)
         {
@@ -71,10 +71,10 @@ public class Teleportation : MonoBehaviour
             charController.enabled = false;
         }
 
-        // Téléporter
+        // Teleporter
         grapplingRaycast.Teleport();
 
-        // Réactiver le CharacterController
+        // Reactiver le CharacterController
         if (controllerWasEnabled && charController)
         {
             charController.enabled = true;
@@ -83,13 +83,13 @@ public class Teleportation : MonoBehaviour
         // Forcer le contact avec le sol
         ForceGroundContact();
 
-        // Attendre après la téléportation
+        // Attendre apres la teleportation
         yield return new WaitForSeconds(postTeleportDelay);
 
-        // Réactiver les contrôles
+        // Reactiver les contreles
         EnableControls();
 
-        // Terminer la téléportation
+        // Terminer la teleportation
         grapplingRaycast.FinishTeleportation();
     }
 
@@ -113,7 +113,7 @@ public class Teleportation : MonoBehaviour
 
     void ForceGroundContact()
     {
-        // Appliquer un petit mouvement vers le bas pour établir le contact avec le sol
+        // Appliquer un petit mouvement vers le bas pour etablir le contact avec le sol
         if (charController && charController.enabled)
         {
             charController.Move(new Vector3(0, -0.1f, 0));
