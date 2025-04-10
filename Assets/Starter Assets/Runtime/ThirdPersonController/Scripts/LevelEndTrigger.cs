@@ -22,7 +22,7 @@ public class LevelEndTrigger : MonoBehaviour
         if (other.CompareTag("Player"))
         {  
             // Le joueur entre dans la zone de fin => on passe au niveau suivant
-            Debug.Log("Plateforme d'arrivée atteinte !");
+            // Debug.Log("Arrival");
             LevelManager.Instance.LoadNextLevel();
         }
     }

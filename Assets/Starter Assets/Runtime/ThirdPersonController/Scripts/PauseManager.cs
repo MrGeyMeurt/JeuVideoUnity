@@ -10,14 +10,12 @@ public class PauseManager : MonoBehaviour
     
     private void Start()
     {
-        // S'assurer que le menu est caché au démarrage
         if (pauseScreen != null)
             pauseScreen.SetActive(false);
     }
     
     private void Update()
     {
-        // Vérifier l'appui sur la touche P
         if (Input.GetKeyDown(KeyCode.P))
         {
             TogglePause();
@@ -35,7 +33,7 @@ public class PauseManager : MonoBehaviour
     
     public void Pause()
     {
-        // Debug.Log("Pause activée");
+        // Debug.Log("Pause");
         Time.timeScale = 0f; 
         if (pauseScreen != null)
             pauseScreen.SetActive(true); 
@@ -44,22 +42,22 @@ public class PauseManager : MonoBehaviour
     
     public void Home() 
     {
-        Time.timeScale = 1f; // Rétablir le temps normal
+        Time.timeScale = 1f; 
         SceneManager.LoadScene("Main Menu");
     }
     
     public void Resume()
     {
         Debug.Log("Resume game");
-        Time.timeScale = 1f; // Reprend le temps
+        Time.timeScale = 1f; 
         if (pauseScreen != null)
-            pauseScreen.SetActive(false); // Cache le menu de pause
+            pauseScreen.SetActive(false); 
         isPaused = false;
     }
     
     public void QuitGame()
     {
         Debug.Log("Exit game");
-        Application.Quit(); // Quitte l'application
+        Application.Quit(); 
     }
 }
