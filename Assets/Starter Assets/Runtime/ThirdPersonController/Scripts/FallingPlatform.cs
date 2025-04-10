@@ -5,7 +5,7 @@ using UnityEngine;
 public class FallingPlatform : MonoBehaviour
 {
     [Header("Paramètres")]
-    [SerializeField] private float fallDelay = 1.0f;
+    [SerializeField] private float fallDelay = 4.0f;
     [SerializeField] private float destroyDelay = 5.0f;
     [SerializeField] private float shakeMagnitude = 0.05f;
     

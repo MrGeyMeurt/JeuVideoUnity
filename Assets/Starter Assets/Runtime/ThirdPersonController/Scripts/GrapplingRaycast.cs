@@ -16,10 +16,6 @@ public class GrapplingRaycast : MonoBehaviour
     [SerializeField] private float maxDistance = 25f;
     [SerializeField] private float teleportHeight = 1.0f;
     
-    [Header("Character Direction Settings")]
-    [SerializeField] private bool useCharacterDirection = false;
-    [SerializeField] private float characterRayHeight = 1.5f;
-    
     // Events
     public event Action OnGrapplingStart;
     public event Action<Vector3> OnGrapplingHit;
@@ -38,11 +34,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private void Start()
     {
-          InitializeCamera();
-    
-    // Forcer l'utilisation du mode caméra (rayon suit la souris)
-    useCharacterDirection = false;
-    
+        InitializeCamera();
     }
 
     private void Update()
@@ -79,15 +71,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private void FireHook()
     {
-        if (useCharacterDirection)
-        {
-            FireHookFromCharacter();
-        }
-        else
-        {
-            FireHookFromCamera();
-        }
-        
+        FireHookFromCamera();
         OnGrapplingStart?.Invoke();
     }
 
@@ -96,19 +80,6 @@ public class GrapplingRaycast : MonoBehaviour
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
         
         if (TryGetGrapplePoint(ray, out grapplePoint))
-        {
-            InitializeHookMovement(grapplePoint);
-        }
-    }
-
-    private void FireHookFromCharacter()
-    {
-        Vector3 rayOrigin = transform.position + Vector3.up * characterRayHeight;
-        Vector3 rayDirection = transform.forward;
-        
-        Debug.DrawRay(rayOrigin, rayDirection * maxDistance, Color.cyan, 1f);
-        
-        if (TryGetGrapplePoint(new Ray(rayOrigin, rayDirection), out grapplePoint))
         {
             InitializeHookMovement(grapplePoint);
         }
@@ -236,25 +207,13 @@ public class GrapplingRaycast : MonoBehaviour
 
     public Vector3 GetTargetPoint(out bool isValid)
     {
-        return useCharacterDirection ? 
-            GetCharacterTargetPoint(out isValid) : 
-            GetCameraTargetPoint(out isValid);
+        return GetCameraTargetPoint(out isValid);
     }
 
     private Vector3 GetCameraTargetPoint(out bool isValid)
     {
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
         return GetRaycastPoint(ray, out isValid);
-    }
-
-    private Vector3 GetCharacterTargetPoint(out bool isValid)
-    {
-        Vector3 rayOrigin = transform.position + Vector3.up * characterRayHeight;
-        Vector3 rayDirection = transform.forward;
-        
-        Debug.DrawRay(rayOrigin, rayDirection * maxDistance, Color.cyan, 0.1f);
-        
-        return GetRaycastPoint(new Ray(rayOrigin, rayDirection), out isValid);
     }
 
     private Vector3 GetRaycastPoint(Ray ray, out bool isValid)

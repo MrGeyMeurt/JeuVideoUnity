@@ -26,11 +26,10 @@ public class LevelManager : MonoBehaviour
         if (nextLevelIndex < SceneManager.sceneCountInBuildSettings)
         {
             SceneManager.LoadScene(nextLevelIndex);
-            // ScoreManager?.Instance?.Reset();
         }
         else
         {
-            Debug.LogWarning("Dernier niveau atteint.");
+            Debug.LogWarning("Last level");
         }
     }
 }

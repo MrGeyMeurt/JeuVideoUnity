@@ -891,6 +891,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1490940657}
+  - component: {fileID: 1490940658}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -916,6 +917,18 @@ Transform:
   - {fileID: 1365161853}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1490940658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1490940656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38213c69bdede6547a2292e439b1f51d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &1628671802 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1967924467071616601, guid: ec404aa4798a6204ea9e55aeeeed1133, type: 3}
@@ -1080,7 +1093,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0.10596466, y: -8.404421, z: 23.053734}
-  m_LocalScale: {x: 89.40097, y: 10, z: 89.40097}
+  m_LocalScale: {x: 89.40097, y: 10, z: 126.56}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1490940657}
