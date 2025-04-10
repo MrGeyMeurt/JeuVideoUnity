@@ -16,4 +16,17 @@ public class MainMenu : MonoBehaviour
         // Quitte l'application
         Application.Quit();
     }
+
+    public void LoadGameLevel()
+{
+    // Désactivez d'abord la caméra du menu si elle existe
+    Camera menuCamera = Camera.main;
+    if (menuCamera != null)
+    {
+        menuCamera.gameObject.SetActive(false);
+    }
+    
+    // Chargez votre niveau
+    SceneManager.LoadScene("Niveau");
+}
 }

@@ -1849,6 +1849,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: EndPlatform
       objectReference: {fileID: 0}
+    - target: {fileID: 7724520104883433785, guid: 0276d9bb06259fe4b95d1a0d821d6a81, type: 3}
+      propertyPath: m_Center.z
+      value: -0.001
+      objectReference: {fileID: 0}
+    - target: {fileID: 7724520104883433785, guid: 0276d9bb06259fe4b95d1a0d821d6a81, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

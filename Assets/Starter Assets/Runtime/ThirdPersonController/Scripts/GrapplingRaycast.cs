@@ -1,64 +1,83 @@
-using System.Collections;
-using System.Collections.Generic;
-using System;
 using UnityEngine;
-
+using System;
 
 public class GrapplingRaycast : MonoBehaviour
 {
+    [Header("Hook References")]
     public Transform hook;
     public Transform hookHolder;
-    public Camera playerCamera;
-    public LayerMask grappleLayer;
-
-    public float hookSpeed = 30f;
-    public float maxDistance = 25f;
-    public float teleportHeight = 1.0f;
-
-    public bool useCharacterDirection = false;
-    public float characterRayHeight = 1.5f;
-
-    // evenements pour communiquer avec d'autres composants
+    
+    [Header("Camera Settings")]
+    [SerializeField] private Camera playerCamera;
+    
+    [Header("Grappling Parameters")]
+    [SerializeField] private LayerMask grappleLayer;
+    [SerializeField] private float hookSpeed = 30f;
+    [SerializeField] private float maxDistance = 25f;
+    [SerializeField] private float teleportHeight = 1.0f;
+    
+    [Header("Character Direction Settings")]
+    [SerializeField] private bool useCharacterDirection = false;
+    [SerializeField] private float characterRayHeight = 1.5f;
+    
+    // Events
     public event Action OnGrapplingStart;
     public event Action<Vector3> OnGrapplingHit;
     public event Action<Vector3> OnTeleportStart;
     public event Action OnTeleportComplete;
-
-    // Variables d'etat
-    private bool hookFired;
-    private bool hookHit;
+    
+    // State variables
+    private bool isHookFired;
+    private bool isHookHit;
     private bool isTeleporting;
-
-    // Variables de position
+    
+    // Position variables
     private Vector3 grapplePoint;
     private Vector3 teleportPoint;
     private Vector3 hookDirection;
 
-    void Start()
+    private void Start()
     {
-        // Initialiser la camera si non specifiee
-        playerCamera = playerCamera ? playerCamera : Camera.main;
+          InitializeCamera();
+    
+    // Forcer l'utilisation du mode caméra (rayon suit la souris)
+    useCharacterDirection = false;
+    
     }
 
-    void Update()
+    private void Update()
     {
         if (isTeleporting) return;
-
-        // Actions principales
-        if (Input.GetMouseButtonUp(0) && !hookFired)
-            FireHook();
-        else if (hookFired && !hookHit)
-        {
-            MoveHook();
-            CheckCollision();
-        }
-
-        // Annuler avec clic droit
-        if (Input.GetMouseButtonDown(1) && (hookFired || hookHit))
-            ResetHook();
+        
+        HandleGrapplingInput();
     }
 
-    void FireHook()
+    private void InitializeCamera()
+    {
+        if (playerCamera == null)
+        {
+            playerCamera = Camera.main;
+        }
+    }
+
+    private void HandleGrapplingInput()
+    {
+        if (Input.GetMouseButtonUp(0) && !isHookFired)
+        {
+            FireHook();
+        }
+        else if (isHookFired && !isHookHit)
+        {
+            MoveHookTowardsTarget();
+        }
+
+        if (Input.GetMouseButtonDown(1) && (isHookFired || isHookHit))
+        {
+            ResetHook();
+        }
+    }
+
+    private void FireHook()
     {
         if (useCharacterDirection)
         {
@@ -68,120 +87,122 @@ public class GrapplingRaycast : MonoBehaviour
         {
             FireHookFromCamera();
         }
+        
+        OnGrapplingStart?.Invoke();
     }
 
-    void FireHookFromCamera()
+    private void FireHookFromCamera()
     {
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
-
-        if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, grappleLayer))
+        
+        if (TryGetGrapplePoint(ray, out grapplePoint))
         {
-            // Configurer le hook
-            grapplePoint = hit.point;
-            hookDirection = (grapplePoint - hookHolder.position).normalized;
-            hookFired = true;
-
-            // Lancer le hook
-            hook.SetParent(null);
-            hook.forward = hookDirection;
-
-            // Notifier les autres composants
-            OnGrapplingStart?.Invoke();
+            InitializeHookMovement(grapplePoint);
         }
     }
 
-    void FireHookFromCharacter()
+    private void FireHookFromCharacter()
     {
-        // Creer un rayon partant du personnage
         Vector3 rayOrigin = transform.position + Vector3.up * characterRayHeight;
         Vector3 rayDirection = transform.forward;
-
-        // Debug pour visualiser le rayon
+        
         Debug.DrawRay(rayOrigin, rayDirection * maxDistance, Color.cyan, 1f);
-
-        if (Physics.Raycast(rayOrigin, rayDirection, out RaycastHit hit, maxDistance, grappleLayer))
+        
+        if (TryGetGrapplePoint(new Ray(rayOrigin, rayDirection), out grapplePoint))
         {
-            // Configurer le hook
-            grapplePoint = hit.point;
-            hookDirection = rayDirection; // Utiliser directement la direction du personnage
-            hookFired = true;
-
-            // Lancer le hook
-            hook.SetParent(null);
-            hook.position = hookHolder.position; // S'assurer que le hook part de la bonne position
-            hook.forward = hookDirection;
-
-            // Notifier les autres composants
-            OnGrapplingStart?.Invoke();
+            InitializeHookMovement(grapplePoint);
         }
     }
 
-    void MoveHook()
+    private bool TryGetGrapplePoint(Ray ray, out Vector3 point)
     {
-        // Si proche de la cible
-        if (grapplePoint != Vector3.zero && Vector3.Distance(hook.position, grapplePoint) < 0.5f)
+        if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, grappleLayer))
         {
-            hook.position = grapplePoint;
-            hookHit = true;
-            CalculateTeleportPoint();
+            point = hit.point;
+            return true;
+        }
+        
+        point = Vector3.zero;
+        return false;
+    }
 
-            // Notifier de la collision
-            OnGrapplingHit?.Invoke(grapplePoint);
+    private void InitializeHookMovement(Vector3 targetPoint)
+    {
+        hookDirection = (targetPoint - hookHolder.position).normalized;
+        isHookFired = true;
+        
+        hook.SetParent(null);
+        hook.forward = hookDirection;
+    }
+
+    private void MoveHookTowardsTarget()
+    {
+        if (IsHookNearTarget())
+        {
+            HandleHookHit();
         }
         else
         {
-            // Deplacer le hook
-            hook.position += hookDirection * hookSpeed * Time.deltaTime;
-
-            // Verifier la distance max
-            if (Vector3.Distance(hookHolder.position, hook.position) >= maxDistance)
-                ResetHook();
+            UpdateHookPosition();
+            CheckMaxDistance();
         }
     }
 
-    void CheckCollision()
+    private bool IsHookNearTarget()
     {
-        if (Physics.SphereCast(hook.position - hookDirection * 0.2f, 0.4f,
-                             hookDirection, out RaycastHit hit, 0.5f, grappleLayer))
+        return grapplePoint != Vector3.zero && 
+               Vector3.Distance(hook.position, grapplePoint) < 0.5f;
+    }
+
+    private void HandleHookHit()
+    {
+        hook.position = grapplePoint;
+        isHookHit = true;
+        
+        CalculateTeleportPoint();
+        OnGrapplingHit?.Invoke(grapplePoint);
+    }
+
+    private void UpdateHookPosition()
+    {
+        hook.position += hookDirection * hookSpeed * Time.deltaTime;
+    }
+
+    private void CheckMaxDistance()
+    {
+        if (Vector3.Distance(hookHolder.position, hook.position) >= maxDistance)
         {
-            grapplePoint = hit.point;
-            hook.position = grapplePoint;
-            hookHit = true;
-            CalculateTeleportPoint();
-
-            // Notifier de la collision
-            OnGrapplingHit?.Invoke(grapplePoint);
+            ResetHook();
         }
     }
 
-    void CalculateTeleportPoint()
+    private void CalculateTeleportPoint()
     {
-        // Point de base au-dessus du point d'accroche
         teleportPoint = grapplePoint + Vector3.up * teleportHeight;
+        AdjustTeleportPointForSurface();
+        OnTeleportStart?.Invoke(teleportPoint);
+    }
 
-        // Ajustement pour plateforme horizontale
-        if (Physics.Raycast(grapplePoint + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1f, grappleLayer)
-            && hit.normal.y > 0.7f)
+    private void AdjustTeleportPointForSurface()
+    {
+        if (Physics.Raycast(grapplePoint + Vector3.up * 0.5f, Vector3.down, 
+            out RaycastHit hit, 1f, grappleLayer) && hit.normal.y > 0.7f)
         {
-            // Legerement vers l'interieur
             Vector3 inward = -hit.normal;
             inward.y = 0;
 
             if (inward.magnitude > 0.01f)
+            {
                 teleportPoint += inward.normalized * 0.5f;
+            }
         }
-
-        // Notifier du point de teleportation
-        OnTeleportStart?.Invoke(teleportPoint);
     }
 
     public void StartTeleportation()
     {
-        if (hookHit && !isTeleporting)
+        if (isHookHit && !isTeleporting)
         {
             isTeleporting = true;
-
-            // Notifier de l'intention de teleportation
             OnTeleportStart?.Invoke(teleportPoint);
         }
     }
@@ -190,10 +211,7 @@ public class GrapplingRaycast : MonoBehaviour
     {
         if (isTeleporting)
         {
-            // Teleporter
             transform.position = teleportPoint;
-
-            // Reinitialiser
             ResetHook();
         }
     }
@@ -209,8 +227,8 @@ public class GrapplingRaycast : MonoBehaviour
 
     public void ResetHook()
     {
-        hookFired = hookHit = false;
-
+        isHookFired = isHookHit = false;
+        
         hook.SetParent(hookHolder);
         hook.localPosition = Vector3.zero;
         hook.localRotation = Quaternion.identity;
@@ -218,38 +236,35 @@ public class GrapplingRaycast : MonoBehaviour
 
     public Vector3 GetTargetPoint(out bool isValid)
     {
-        if (useCharacterDirection)
-        {
-            return GetCharacterTargetPoint(out isValid);
-        }
-        else
-        {
-            return GetCameraTargetPoint(out isValid);
-        }
+        return useCharacterDirection ? 
+            GetCharacterTargetPoint(out isValid) : 
+            GetCameraTargetPoint(out isValid);
     }
 
     private Vector3 GetCameraTargetPoint(out bool isValid)
     {
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
-        isValid = Physics.Raycast(ray, out RaycastHit hit, maxDistance, grappleLayer);
-        return isValid ? hit.point : ray.origin + ray.direction * maxDistance;
+        return GetRaycastPoint(ray, out isValid);
     }
 
     private Vector3 GetCharacterTargetPoint(out bool isValid)
     {
-        // Creer un rayon partant du personnage
         Vector3 rayOrigin = transform.position + Vector3.up * characterRayHeight;
         Vector3 rayDirection = transform.forward;
-
-        // Debug pour visualiser le rayon
+        
         Debug.DrawRay(rayOrigin, rayDirection * maxDistance, Color.cyan, 0.1f);
+        
+        return GetRaycastPoint(new Ray(rayOrigin, rayDirection), out isValid);
+    }
 
-        isValid = Physics.Raycast(rayOrigin, rayDirection, out RaycastHit hit, maxDistance, grappleLayer);
-        return isValid ? hit.point : rayOrigin + rayDirection * maxDistance;
+    private Vector3 GetRaycastPoint(Ray ray, out bool isValid)
+    {
+        isValid = Physics.Raycast(ray, out RaycastHit hit, maxDistance, grappleLayer);
+        return isValid ? hit.point : ray.origin + ray.direction * maxDistance;
     }
 
     public bool IsGrappling()
     {
-        return hookFired || hookHit || isTeleporting;
+        return isHookFired || isHookHit || isTeleporting;
     }
 }
