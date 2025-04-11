@@ -1,3 +1,5 @@
+![banner](https://github.com/user-attachments/assets/7301c99a-5206-4d74-9765-0e32436b729e)
+
 # SpellCatser
 A 3D platformer set in a magical universe where you control a wizard cat that uses its magical grappling hook and spells to navigate treacherous platforms and obstacles.
 
