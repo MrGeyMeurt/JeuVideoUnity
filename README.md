@@ -61,3 +61,7 @@ Press the Play button in the Unity editor to start the game.
 ## Future Improvements
 **Gamepad Support:**  
 Implement controller compatibility for a more accessible experience.
+
+## Contributors
+- [Caroline.D](https://carolinedoung.fr/) - Developer | Responsible for physics, gameplay and functionalities.
+- [Hugo.P](https://hugopayeux.wixsite.com/mon-portfolio) - 3D Artist | Focused on 3D asset creation and animations.
