@@ -74,7 +74,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2015663996914762166}
   m_Layer: 0
-  m_Name: Plateforme mouvante
+  m_Name: MovingPlateform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
