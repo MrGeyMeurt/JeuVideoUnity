@@ -26,9 +26,17 @@ public class PauseManager : MonoBehaviour
     {
         isPaused = !isPaused;
         if (isPaused)
+        {
             Pause();
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
         else
+        {
             Resume();
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
     }
     
     public void Pause()
@@ -42,7 +50,7 @@ public class PauseManager : MonoBehaviour
     public void Home() 
     {
         Time.timeScale = 1f; 
-        SceneManager.LoadScene("Main Menu");
+        SceneManager.LoadScene("MainMenu");
     }
     
     public void Resume()
