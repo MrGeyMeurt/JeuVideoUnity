@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class MovingPlatform : MonoBehaviour
 {
-    public Transform pointA;
-    public Transform pointB;
-    public float speed = 0.2f;
-    public bool smoothMovement = true;
+    [SerializeField] private Transform pointA;
+    [SerializeField] private Transform pointB;
+    [SerializeField] private float speed = 0.2f;
+    [SerializeField] private bool smoothMovement = true;
     
     private float journeyLength;
     private float startTime;
@@ -20,7 +20,7 @@ public class MovingPlatform : MonoBehaviour
     {
         if (pointA == null || pointB == null)
         {
-            Debug.LogError("Points A et B doivent être assignés!");
+            // Debug.LogError("Points A and B are not assigned in the inspector.");
             enabled = false;
             return;
         }
@@ -33,6 +33,7 @@ public class MovingPlatform : MonoBehaviour
     
     void Update()
     {
+        // Check if the points are assigned
         if (smoothMovement)
         {
             float pingPongValue = Mathf.PingPong(Time.time * speed, 1.0f);
@@ -61,6 +62,7 @@ public class MovingPlatform : MonoBehaviour
     
     void OnDrawGizmos()
     {
+        // Draw the points in the editor for visualization
         if (pointA != null && pointB != null)
         {
             Gizmos.color = Color.blue;

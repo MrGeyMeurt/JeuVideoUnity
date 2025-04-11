@@ -5,25 +5,41 @@ using UnityEngine.SceneManagement;
 
 public class LevelEndTrigger : MonoBehaviour
 {
-    [SerializeField] private BoxCollider triggerCollider; // Référence au collider avec trigger
+    [SerializeField] private BoxCollider triggerCollider;
+    [SerializeField] private bool isFinalLevel = false;  
+    [SerializeField] private EndScreenManager endScreenManager;
     
     private void Start()
     {
-        // Vérifier que le collider est bien un trigger
+        // Verify if the triggerCollider is assigned and is a trigger
         if (triggerCollider != null && !triggerCollider.isTrigger)
         {
             Debug.LogWarning("Le collider assigné n'est pas configuré comme trigger!");
         }
+        
+        // If this is the final level, find the EndScreenManager in the scene
+        if (isFinalLevel && endScreenManager == null)
+        {
+            endScreenManager = FindObjectOfType<EndScreenManager>();
+            if (endScreenManager == null)
+            {
+                Debug.LogWarning("EndScreenManager non trouvé! Assurez-vous qu'il existe dans la scène si c'est le niveau final.");
+            }
+        }
     }
-    
+   
     private void OnTriggerEnter(Collider other)
     {
-        // Vérifier que la collision se produit avec le bon collider
         if (other.CompareTag("Player"))
         {  
-            // Le joueur entre dans la zone de fin => on passe au niveau suivant
-            // Debug.Log("Arrival");
-            LevelManager.Instance.LoadNextLevel();
+            if (isFinalLevel && endScreenManager != null)
+            {
+                endScreenManager.ShowEndScreen();
+            }
+            else
+            {
+                LevelManager.Instance.LoadNextLevel();
+            }
         }
     }
 }

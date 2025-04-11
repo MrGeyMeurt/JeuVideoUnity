@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         Cursor.visible = true; 
-        Cursor.lockState = CursorLockMode.Locked; // Verrouille le curseur au centre de l'écran
+        Cursor.lockState = CursorLockMode.Locked; 
         Debug.Log("GameManager started. Cursor locked.");
     }
 

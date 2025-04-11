@@ -3,31 +3,25 @@ using System;
 
 public class GrapplingRaycast : MonoBehaviour
 {
-    [Header("Hook References")]
     public Transform hook;
     public Transform hookHolder;
     
-    [Header("Camera Settings")]
     [SerializeField] private Camera playerCamera;
     
-    [Header("Grappling Parameters")]
     [SerializeField] private LayerMask grappleLayer;
     [SerializeField] private float hookSpeed = 30f;
     [SerializeField] private float maxDistance = 25f;
     [SerializeField] private float teleportHeight = 1.0f;
     
-    // Events
     public event Action OnGrapplingStart;
     public event Action<Vector3> OnGrapplingHit;
     public event Action<Vector3> OnTeleportStart;
     public event Action OnTeleportComplete;
     
-    // State variables
     private bool isHookFired;
     private bool isHookHit;
     private bool isTeleporting;
     
-    // Position variables
     private Vector3 grapplePoint;
     private Vector3 teleportPoint;
     private Vector3 hookDirection;
@@ -54,6 +48,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private void HandleGrapplingInput()
     {
+        // Check if the player is trying to fire the hook
         if (Input.GetMouseButtonUp(0) && !isHookFired)
         {
             FireHook();
@@ -77,6 +72,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private void FireHookFromCamera()
     {
+        // Cast a ray from the camera to the mouse position
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
         
         if (TryGetGrapplePoint(ray, out grapplePoint))
@@ -87,6 +83,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private bool TryGetGrapplePoint(Ray ray, out Vector3 point)
     {
+        // Perform a raycast to find the grapple point
         if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, grappleLayer))
         {
             point = hit.point;
@@ -99,6 +96,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private void InitializeHookMovement(Vector3 targetPoint)
     {
+        // Set the target point
         hookDirection = (targetPoint - hookHolder.position).normalized;
         isHookFired = true;
         
@@ -121,6 +119,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private bool IsHookNearTarget()
     {
+        // Check if the hook is close enough to the target point
         return grapplePoint != Vector3.zero && 
                Vector3.Distance(hook.position, grapplePoint) < 0.5f;
     }
@@ -149,6 +148,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private void CalculateTeleportPoint()
     {
+        // Calculate the teleport point based on the grapple point and height
         teleportPoint = grapplePoint + Vector3.up * teleportHeight;
         AdjustTeleportPointForSurface();
         OnTeleportStart?.Invoke(teleportPoint);
@@ -156,6 +156,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     private void AdjustTeleportPointForSurface()
     {
+        // Adjust the teleport point based on the surface normal
         if (Physics.Raycast(grapplePoint + Vector3.up * 0.5f, Vector3.down, 
             out RaycastHit hit, 1f, grappleLayer) && hit.normal.y > 0.7f)
         {
@@ -171,6 +172,7 @@ public class GrapplingRaycast : MonoBehaviour
 
     public void StartTeleportation()
     {
+        // Start the teleportation process if the hook is hit and not already teleporting
         if (isHookHit && !isTeleporting)
         {
             isTeleporting = true;

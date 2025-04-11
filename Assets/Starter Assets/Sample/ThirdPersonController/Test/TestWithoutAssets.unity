@@ -2948,6 +2948,8 @@ MonoBehaviour:
   aimLine: {fileID: 0}
   validColor: {r: 0, g: 1, b: 0, a: 1}
   invalidColor: {r: 1, g: 0, b: 0, a: 1}
+  indicatorSize: 0.2
+  lineWidth: 0.05
 --- !u!114 &1762682293
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2969,8 +2971,6 @@ MonoBehaviour:
   hookSpeed: 30
   maxDistance: 25
   teleportHeight: 1
-  useCharacterDirection: 0
-  characterRayHeight: 1.5
 --- !u!114 &1762682298
 MonoBehaviour:
   m_ObjectHideFlags: 0

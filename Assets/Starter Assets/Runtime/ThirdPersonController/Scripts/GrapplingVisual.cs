@@ -4,15 +4,12 @@ using UnityEngine;
 
 public class GrapplingVisual : MonoBehaviour
 {
-    [Header("Visual Components")]
     [SerializeField] private GameObject aimPointPrefab;
     [SerializeField] private LineRenderer aimLine;
     
-    [Header("Color Settings")]
     [SerializeField] private Color validColor = Color.green;
     [SerializeField] private Color invalidColor = Color.red;
     
-    [Header("Visual Properties")]
     [SerializeField] private float indicatorSize = 0.2f;
     [SerializeField] private float lineWidth = 0.05f;
     
@@ -23,6 +20,7 @@ public class GrapplingVisual : MonoBehaviour
     
     private void Start()
     {
+        // Verify if the grapplingRaycast component is present
         grapplingRaycast = GetComponent<GrapplingRaycast>();
         if (grapplingRaycast != null)
             grapplingRaycast.OnGrapplingStart += HideAimVisuals;
@@ -38,7 +36,6 @@ public class GrapplingVisual : MonoBehaviour
         if (targetIndicator != null)
             Destroy(targetIndicator);
             
-        // Important: détruire le matériau correctement
         if (indicatorMaterial != null)
             Destroy(indicatorMaterial);
     }
@@ -56,7 +53,7 @@ public class GrapplingVisual : MonoBehaviour
     
     private void CreateVisualElements()
     {
-        // Créer l'indicateur de visée
+        // Create the target indicator
         if (aimPointPrefab)
         {
             targetIndicator = Instantiate(aimPointPrefab, Vector3.zero, Quaternion.identity);
@@ -71,7 +68,7 @@ public class GrapplingVisual : MonoBehaviour
             targetRenderer = targetIndicator.GetComponent<Renderer>();
             if (targetRenderer)
             {
-                // Créer un matériau qui fonctionne dans la build
+                // Create a new material for the indicator
                 indicatorMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"));
                 
                 // Si ce shader n'est pas disponible, essayer d'autres options
@@ -81,13 +78,11 @@ public class GrapplingVisual : MonoBehaviour
                     indicatorMaterial = new Material(Shader.Find("Mobile/Diffuse"));
                 
                 targetRenderer.material = indicatorMaterial;
-                // Définir la couleur initiale
                 SetIndicatorColor(true);
             }
         }
         targetIndicator.SetActive(false);
         
-        // Configurer la ligne de visée
         if (!aimLine)
         {
             aimLine = gameObject.AddComponent<LineRenderer>();
@@ -106,7 +101,7 @@ public class GrapplingVisual : MonoBehaviour
     {
         Vector3 targetPoint = grapplingRaycast.GetTargetPoint(out bool isValid);
         
-        // Mettre à jour l'indicateur
+        // Update the target indicator
         if (targetIndicator)
         {
             targetIndicator.SetActive(true);
@@ -115,7 +110,7 @@ public class GrapplingVisual : MonoBehaviour
             SetIndicatorColor(isValid);
         }
         
-        // Mettre à jour la ligne
+        // Update the aim line
         if (aimLine)
         {
             aimLine.enabled = true;
@@ -132,10 +127,9 @@ public class GrapplingVisual : MonoBehaviour
         {
             Color newColor = isValid ? validColor : invalidColor;
             
-            // Appliquer la couleur de plusieurs façons pour garantir qu'elle est prise en compte
+            // Apply the color to the material
             targetRenderer.material.color = newColor;
             
-            // Ces méthodes supplémentaires peuvent aider dans certains pipelines de rendu
             targetRenderer.material.SetColor("_Color", newColor);
             targetRenderer.material.SetColor("_BaseColor", newColor);
         }
@@ -143,6 +137,7 @@ public class GrapplingVisual : MonoBehaviour
     
     private void HideAimVisuals()
     {
+        // Hide the target indicator and aim line
         if (targetIndicator) targetIndicator.SetActive(false);
         if (aimLine) aimLine.enabled = false;
     }

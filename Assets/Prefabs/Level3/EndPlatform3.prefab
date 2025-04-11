@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4303387926913532192}
   - component: {fileID: 6177658364112750462}
   m_Layer: 6
-  m_Name: "Plateforme arriv\xE9e"
+  m_Name: EndPlatform3
   m_TagString: Hookable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

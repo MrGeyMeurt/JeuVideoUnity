@@ -33,7 +33,6 @@ public class PauseManager : MonoBehaviour
     
     public void Pause()
     {
-        // Debug.Log("Pause");
         Time.timeScale = 0f; 
         if (pauseScreen != null)
             pauseScreen.SetActive(true); 

@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class FallingPlatform : MonoBehaviour
 {
-    [Header("Paramètres")]
     [SerializeField] private float fallDelay = 4.0f;
     [SerializeField] private float destroyDelay = 5.0f;
     [SerializeField] private float shakeMagnitude = 0.05f;
     
-    [Header("Détection")]
     [SerializeField] private float detectionHeight = 0.5f;
     
     private Vector3 originalPosition;
@@ -32,6 +30,7 @@ public class FallingPlatform : MonoBehaviour
     
     private void Update()
     {
+        // Check if the player is within the detection area
         if (isFalling)
             return;
             
@@ -45,7 +44,6 @@ public class FallingPlatform : MonoBehaviour
         {
             if (collider.CompareTag("Player"))
             {
-                // Debug.Log("Joueur détecté sur la plateforme!");
                 isFalling = true;
                 StartCoroutine(FallAfterDelay());
                 break;
@@ -55,7 +53,7 @@ public class FallingPlatform : MonoBehaviour
     
     private IEnumerator FallAfterDelay()
     {
-        // Debug.Log("Début du tremblement");
+        // Platform shake before falling
         float elapsedTime = 0f;
         
         while (elapsedTime < fallDelay)
@@ -67,7 +65,6 @@ public class FallingPlatform : MonoBehaviour
             yield return null;
         }
         
-        // Debug.Log("Chute de la plateforme");
         transform.position = originalPosition;
         platformRigidbody.isKinematic = false;
         platformRigidbody.useGravity = true;
@@ -77,6 +74,7 @@ public class FallingPlatform : MonoBehaviour
     
     private void OnDrawGizmos()
     {
+        // Draw the detection area in the editor
         if (GetComponent<BoxCollider>() != null)
         {
             Bounds bounds = GetComponent<BoxCollider>().bounds;
