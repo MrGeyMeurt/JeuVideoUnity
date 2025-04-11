@@ -19,15 +19,12 @@ Move from one platform to the next. If you fall off, you'll respawn at the start
 **Objective:**  
 Reach the final platform (with the flag) in each level until you complete Level 3, thereby finishing the game.
 
-**Future Mechanics:**  
-Additional spells and mechanics may be introduced as development progresses.
-
 ## Controls
 **Movement:**
-- Use either ZQSD or the arrow keys to move.
+- Use either ``ZQSD`` or the ``arrow keys`` to move.
 
 **Pause:**
-- Press P to pause the game.  
+- Press ``P`` to pause the game.  
 *Note:* Future updates may include full gamepad/controller support.
 
 ## Included Assets
@@ -40,10 +37,10 @@ Additional spells and mechanics may be introduced as development progresses.
 - Cat (Player)
 
 ## Technologies Used
-**Game Engine:** Unity (version 2022.3.47f1)
-**Programming Language:** C#
-**3D Design:** Blender
-**Version Control:** GitHub
+- **Game Engine:** Unity (version 2022.3.47f1)
+- **Programming Language:** C#
+- **3D Design:** Blender
+- **Version Control:** GitHub
 
 ## Installation
 1. **Clone or Download the Repository:**  
